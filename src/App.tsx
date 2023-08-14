@@ -8,7 +8,7 @@ import RouteComponent from './components/RouteComponent';
 function App() {
   return (
     <div className='w-screen min-h-screen bg-slate-200 pb-10'>
-      <BrowserRouter basename='/order_confirm'>
+      <BrowserRouter basename='/'>
         <AppBar />
         <div className='-mt-20'>
           <Routes>
