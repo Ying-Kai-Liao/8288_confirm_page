@@ -33,7 +33,7 @@ const RouteComponent = () => {
             PaymentType: "Credit",
             PaymentDate: "2023/08/14 11:18:36",
             TradeDate: "2023/08/14 11:18:05",
-            TradeStatus: "10",
+            TradeStatus: "1",
             ChargeFee: 5
         },
         CustomField: "",
