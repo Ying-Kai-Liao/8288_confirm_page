@@ -12,7 +12,7 @@ function App() {
         <AppBar />
         <div className='-mt-20'>
           <Routes>
-            <Route path="/" element={<RouteComponent />} />
+            <Route path="/order_confirm" element={<RouteComponent />} />
           </Routes>
         </div>
       </BrowserRouter>

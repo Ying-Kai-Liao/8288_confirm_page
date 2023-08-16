@@ -8,7 +8,7 @@ const RouteComponent = () => {
     const queryParams = new URLSearchParams(location.search);
 
     const merchantTradeNo = queryParams.get('MerchantTradeNo');
-    const itemName = queryParams.get('ItemName');
+    console.log(merchantTradeNo);
 
     const [responseData, setResponseData] = useState<any>(null);
     const [success, setSuccess] = useState(false);
@@ -19,42 +19,6 @@ const RouteComponent = () => {
         window.print();
     };
 
-    // DELETE here for production
-
-    const mockResponseData = {
-        RtnCode: "1",
-        RtnMsg: "成功.",
-        PlatformID: "",
-        MerchantID: "1010605",
-        OrderInfo: {
-            MerchantTradeNo: "11412",
-            TradeNo: "2308141118054989",
-            TradeAmt: 40,
-            PaymentType: "Credit",
-            PaymentDate: "2023/08/14 11:18:36",
-            TradeDate: "2023/08/14 11:18:05",
-            TradeStatus: "1",
-            ChargeFee: 5
-        },
-        CustomField: "",
-        CardInfo: {
-            AuthCode: "832076",
-            Gwsr: 13009444,
-            ProcessDate: "2023/08/14 11:18:36",
-            Amount: 40,
-            Eci: 5,
-            Card6No: "447757",
-            Card4No: "5016"
-        }
-    };
-
-    // Function that simulates a fetch call
-    const mockFetch = async () => {
-        return {
-            json: async () => mockResponseData
-        };
-    };
-
     const fetchData = async () => {
         try {
             const url = 'https://8288girl.com/wp-json/api/check_pay_ready';
@@ -62,18 +26,15 @@ const RouteComponent = () => {
                 MerchantTradeNo: merchantTradeNo
             };
 
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestData),
+            });
 
-            // ADD here when production
-            // const response = await fetch(url,  {
-            //     method: 'POST',
-            //     headers: {
-            //         'Contetn-Type': 'application/json',
-            //     },
-            //     body: JSON.stringify(requestData),
-            // });
-
-            const mockResponse = await mockFetch();
-            const data: any = await mockResponse.json(); // revise HERE to response
+            const data: any = await response.json(); 
             if (data.RtnCode === "1") {
                 setCorrect(true);
             }
@@ -99,9 +60,52 @@ const RouteComponent = () => {
         }
     }, [orderInfo])
 
+    const handleClick = () => {
+        if(success) {
+            return window.location.href="https://8288girl.com"
+        }
+        return window.location.href="https://8288girl.com/checkout"
+    }
+
     const dateParts = orderInfo?.PaymentDate.split(" ")[0]?.split("/");
     const timeParts = orderInfo?.PaymentDate.split(" ")[1]?.split(":");
 
+    type PaymentDetailsProps = {
+        paymentType: string;
+        Info: any; 
+        Bank?: boolean;
+        AccountNo?: boolean;
+      };
+      
+    function PaymentDetails({ paymentType, Info, Bank = false, AccountNo = false }: PaymentDetailsProps) {
+        if (paymentType === "CVS") {
+          const store = Info?.PayFrom === "family" ? '全家' : Info?.PayFrom === "ibon" ? '統一超商' : '無資料'
+          const location = decodeURIComponent(Info?.StoreName)
+          return (
+            <div>{store} {location}</div>
+          );
+        }
+
+        return (
+          <div></div>
+        );
+      }      
+    
+      function ATMPaymentDetails({ paymentType, Info, Bank = false, AccountNo = false }: PaymentDetailsProps) {
+        if (paymentType === "ATM") {
+            const bank = Info?.ATMAccBank === '822' ? '中國信託 822' : Info?.ATMAccBank === '007' ? '第一銀行' : Info?.ATMAccBank === null ? '無資料': Info?.ATMAccBank
+            const No = Info?.ATMAccNo === null ? '無資料': Info?.ATMAccNo
+            return (
+              <div>
+                {Bank && bank}{AccountNo && No}
+              </div>
+            )
+        }
+
+        return (
+          <div></div>
+        );
+      }      
 
     if (!correct) {
         return (
@@ -114,7 +118,7 @@ const RouteComponent = () => {
     }
 
     return (
-        <div>
+        <div className='flex items-center justify-center flex-col'>
             <div className='flex items-center justify-center flex-col' id='card'>
                 <PaymentSuccessAnimation success={success} />
                 <div className='flex flex-col text-center rounded-[20px] bg-white max-w-[500px] mx-5 md:w-[500px] shadow-lg'>
@@ -123,7 +127,7 @@ const RouteComponent = () => {
                             {success ? '付款成功' : '付款失敗'}
                         </div>
                         <div className='text-[30px] font-semibold'>
-                            {orderInfo?.TradeAmt + orderInfo?.ChargeFee}元
+                            {orderInfo?.TradeAmt}元
                         </div>
                     </div>
                     <div className='px-10 pb-10 divide-y divide-dashed'>
@@ -134,8 +138,18 @@ const RouteComponent = () => {
                             </div>
                             <div className='flex justify-between'>
                                 <div className='pb-2 text-stone-400'>商品名稱</div>
-                                <div className='font-semibold'>8288 VIP</div>
+                                <div className='font-semibold'>{orderInfo?.item_name}</div>
                             </div>
+                            <div className='flex justify-between'>
+                                <div className='pb-2 text-stone-400'>付款日期</div>
+                                <div className='font-semibold'>{(dateParts && dateParts.length >= 3) ? `${parseInt(dateParts[1])} / ${parseInt(dateParts[2])}` : `未付款`}</div>
+                            </div>
+                            <div className='flex justify-between'>
+                                <div className='pb-2 text-stone-400'>付款時間</div>
+                                <div className='font-semibold'>{(timeParts && timeParts.length >= 3) ? `${timeParts[0]}:${timeParts[1]}` : `未付款`}</div>
+                            </div>
+                        </div>
+                        <div className='py-5 flex flex-col'>
                             <div className='flex justify-between'>
                                 <div className='pb-2 text-stone-400'>付款方式</div>
                                 <div className='font-semibold'>
@@ -145,22 +159,24 @@ const RouteComponent = () => {
                                 </div>
                             </div>
                             <div className='flex justify-between'>
-                                <div className='pb-2 text-stone-400'>付款日期</div>
-                                <div className='font-semibold'>{(dateParts && dateParts.length >= 3) ? `${parseInt(dateParts[1])} / ${parseInt(dateParts[2])}` : `${orderInfo?.PaymentDate.split(" ")[0]}`}</div>
+                                <div className='pb-2 text-stone-400'>
+                                    {orderInfo?.PaymentType === "ATM" && '銀行'}
+                                </div>
+                                <div className='font-semibold'>
+                                    <ATMPaymentDetails paymentType={orderInfo?.PaymentType} Info={responseData?.ATMInfo} Bank />
+                                </div>
                             </div>
                             <div className='flex justify-between'>
-                                <div className='pb-2 text-stone-400'>付款時間</div>
-                                <div className='font-semibold'>{(timeParts && timeParts.length >= 3) ? `${timeParts[0]}:${timeParts[1]}` : `${orderInfo?.PaymentDate.split(" ")[1]}`}</div>
-                            </div>
-                        </div>
-                        <div className='py-5 flex flex-col'>
-                            <div className='flex justify-between'>
-                                <div className='pb-2 text-stone-400'>價格</div>
-                                <div className='font-semibold'>{orderInfo?.TradeAmt}</div>
-                            </div>
-                            <div className='flex justify-between'>
-                                <div className='pb-2 text-stone-400'>手續費</div>
-                                <div className='font-semibold'>{orderInfo?.ChargeFee}</div>
+                                <div className='pb-2 text-stone-400'>
+                                    {orderInfo?.PaymentType === "CVS" && '繳費地點'}
+                                    {orderInfo?.PaymentType === "Credit" && '卡號'}
+                                    {orderInfo?.PaymentType === "ATM" && '轉帳末五碼'}
+                                </div>
+                                <div className='font-semibold'>
+                                    <PaymentDetails paymentType={orderInfo?.PaymentType} Info={responseData?.CVSInfo} />
+                                    {orderInfo?.PaymentType === "Credit" && `${responseData?.CardInfo.Card6No}******${responseData?.CardInfo.Card4No}`}
+                                    <ATMPaymentDetails paymentType={orderInfo?.PaymentType} Info={responseData?.ATMInfo} AccountNo />
+                                </div>
                             </div>
                         </div>
                         <div className='py-5'>
@@ -169,7 +185,7 @@ const RouteComponent = () => {
                                     總金額
                                 </div>
                                 <div className='text-right font-bold'>
-                                    ＄{orderInfo?.TradeAmt + orderInfo?.ChargeFee}
+                                    ＄{orderInfo?.TradeAmt}
                                 </div>
                             </div>
                             <div className={`flex justify-between py-2 text-xl ${success ? 'text-green-500' : 'text-red-500'}`}>
@@ -188,6 +204,16 @@ const RouteComponent = () => {
                             </span>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div className='flex flex-row justify-center md:w-[400px] max-w-[400px]'>
+                <div className='justify-center text-white hover:text-purple-800
+                  text-center text-lg font-semibold mt-10 bg-[#120123] transition-all duration-300
+                  hover:bg-white p-6 w-32 cursor-pointer rounded-[16px] shadow-lg'
+                  onClick={handleClick}
+                >
+                    <span>{success && `返回首頁`}</span>
+                    <span>{!success && `返回結帳`}</span>
                 </div>
             </div>
         </div>
