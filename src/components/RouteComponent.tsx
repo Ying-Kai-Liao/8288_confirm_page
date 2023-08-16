@@ -12,14 +12,17 @@ const RouteComponent = () => {
 
   const [responseData, setResponseData] = useState<any>(null);
   const [success, setSuccess] = useState(false);
-  const [correct, setCorrect] = useState(false);
+  const [correct, setCorrect] = useState(true);
   const [orderInfo, setOrderInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const handlePrint = () => {
     window.print();
   };
 
   const fetchData = async () => {
+    setLoading(true);
+
     try {
       const url = "https://8288girl.com/wp-json/api/check_pay_ready";
       const requestData = {
@@ -37,9 +40,16 @@ const RouteComponent = () => {
       const data: any = await response.json();
       if (data.RtnCode === "1") {
         setCorrect(true);
+      } else {
+        setCorrect(false);
       }
+
       setResponseData(data);
+
+      setLoading(false)
+
     } catch (error) {
+      setLoading(false)
       console.error("Error fetcching data:", error);
     }
   };
@@ -80,8 +90,6 @@ const RouteComponent = () => {
   function PaymentDetails({
     paymentType,
     Info,
-    Bank = false,
-    AccountNo = false,
   }: PaymentDetailsProps) {
     if (paymentType === "CVS") {
       const store =
@@ -127,6 +135,20 @@ const RouteComponent = () => {
 
     return <div></div>;
   }
+//   if (loading) {
+//     return (
+//       <div className="flex items-center justify-center flex-col mt-32">
+//         <div className="flex flex-col text-center rounded-[20px] bg-white max-w-[500px] mx-5 md:w-[500px] shadow-lg 2xl p-10">
+//             {loading && (
+//                 <div className="flex flex-col justify-center items-center h-60">
+//                     <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#120123]"></div>
+//                     <div className="">加載中請稍候</div>
+//                 </div>
+//             )}
+//         </div>
+//       </div>
+//     )
+//   }
 
   if (!correct) {
     return (
@@ -141,7 +163,7 @@ const RouteComponent = () => {
   return (
     <div className="flex items-center justify-center flex-col">
       <div className="flex items-center justify-center flex-col" id="card">
-        <PaymentSuccessAnimation success={success} />
+        <PaymentSuccessAnimation success={success} loading={loading}/>
         <div className="flex flex-col text-center rounded-[20px] bg-white max-w-[500px] mx-5 md:w-[500px] shadow-lg">
           <div className="p-4 rounded-[20px] m-4 mt-20">
             <div className="text-[20px] font-semibold">

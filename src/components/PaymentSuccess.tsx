@@ -2,13 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Player } from '@lottiefiles/react-lottie-player';
 import successLottie from '../animations/success.json';
 import failLottie from '../animations/fail.json';
+import loadingLottie from '../animations/loading.json';
 
 interface PaymentSuccessAnimationProps {
   success?: boolean;
+  loading?: boolean;
 }
 
 const PaymentSuccessAnimation: React.FC<PaymentSuccessAnimationProps> = ({
   success = false,
+  loading = true
 }) => {
   const [animationFinished, setAnimationFinished] = useState(false);
   const [cardHeight, setCardHeight] = useState(0);
@@ -21,6 +24,13 @@ const PaymentSuccessAnimation: React.FC<PaymentSuccessAnimationProps> = ({
       playerRef.current?.play();
     }
   };
+
+  useEffect(() => {
+    if (loading) {
+      setAnimationFinished(true);
+    } 
+    setAnimationFinished(false);
+  }, [loading])
 
   useEffect(() => {
     if (playerRef.current) {
@@ -51,11 +61,14 @@ const PaymentSuccessAnimation: React.FC<PaymentSuccessAnimationProps> = ({
     <div
       className={`flex justify-center items-center
        transition-all duration-500 ${
-        animationFinished ? 'absolute bg-transparent ' : success ? 'bg-green-200 absolute w-full h-full top-0 ' : 'bg-red-200 fixed w-full h-full top-0 '
+        animationFinished ? 'absolute bg-transparent ' : success ? 'bg-green-200 absolute w-full h-full top-0 ' : loading ? 'bg-[#120123] fixed w-full h-full top-0' : 'bg-red-200 fixed w-full h-full top-0 '
       }`}
     >
       <div>
-        <Player
+        {loading ? (
+          <Player src={loadingLottie} autoplay loop />
+        ):(
+          <Player
           ref={playerRef}
           src={success ? successLottie : failLottie}
           loop={animationFinished}
@@ -64,6 +77,7 @@ const PaymentSuccessAnimation: React.FC<PaymentSuccessAnimationProps> = ({
           style={playerStyle}
           className=''
         />
+        )}
       </div>
     </div>
   );
