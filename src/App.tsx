@@ -8,11 +8,11 @@ import RouteComponent from './components/RouteComponent';
 function App() {
   return (
     <div className='w-screen min-h-screen bg-slate-200 pb-10'>
-      <BrowserRouter basename='/'>
+      <BrowserRouter basename='/order_confirm'>
         <AppBar />
         <div className='-mt-20'>
           <Routes>
-            <Route path="/order_confirm" element={<RouteComponent />} />
+            <Route path="/" element={<RouteComponent />} />
           </Routes>
         </div>
       </BrowserRouter>
